@@ -3,7 +3,10 @@
 	"version": "1.0.0",
 	"keywords": [
 		"touch",
-		"cap1293"
+		"cap1293",
+		"RAKWireless",
+		"WisBlock",
+		"RAK14002"
 	],
 	"description": "RAKWireless library for the RAK14002 module with the CAP1293 sense IC",
 	"frameworks": [
