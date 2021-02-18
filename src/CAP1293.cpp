@@ -48,9 +48,7 @@ bool CAP1293::begin(TwoWire &wirePort, uint8_t deviceAddress)
 	// Disable double Interrupt on touch and release
 	/// \todo should be in a function and not fixed
 	byte controlReg2 = readRegister(CONFIG_2);
-	Serial.printf("Control 2 %02X\n", controlReg2);
 	controlReg2 = controlReg2 | 0b00000001;
-	Serial.printf("Control 2 %02X\n", controlReg2);
 	writeRegister(CONFIG_2, controlReg2);
 
 	setSensitivity(SENSITIVITY_2X); // Set sensitivity to 2x on startup
