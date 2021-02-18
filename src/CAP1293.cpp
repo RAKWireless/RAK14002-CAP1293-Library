@@ -1,23 +1,13 @@
-/******************************************************************************
-SparkFun_CAP1293.cpp
-SFE_Capacitive Touch Slider Library - Source File
-Andrea DeVore @ SparkFun Electronics
-Original Creation Date: April 4, 2019
-https://github.com/sparkfun/Qwiic_Capacitive_Touch_Slider_CAP1293
-
-This file implements all functions of the CAP1293 class.
-
-Development environment specifics:
-	IDE: Arduino 1.6.0
-	Hardware Platform: Arduino Uno
-	CAP1293 Breakout Version: 1.0
-
-This code is beerware; if you see me (or any other SparkFun employee) at the
-local, and you've found our code helpful, please buy us a round!
-
-Distributed as-is; no warranty is given.
-******************************************************************************/
-
+/**
+ * @file CAP1293.cpp
+ * @author Bernd Giesecke (bernd.giesecke@rakwireless.com)
+ * @brief Microchip CAP1293 Touch Sense IC library. Based on Sparkfun CAP1203 library
+ * @version 0.1
+ * @date 2021-02-18
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 #include <Arduino.h>
 #include <Wire.h>
 #include "CAP1293_Registers.h"
@@ -30,7 +20,7 @@ Distributed as-is; no warranty is given.
 */
 CAP1293::CAP1293(byte addr)
 {
-    _deviceAddress = addr;
+	_deviceAddress = addr;
 }
 
 /* BEGIN INITIALIZATION
@@ -38,22 +28,22 @@ CAP1293::CAP1293(byte addr)
 */
 bool CAP1293::begin(TwoWire &wirePort, uint8_t deviceAddress)
 {
-    // Set device address and wire port to private variable
-    _deviceAddress = deviceAddress;
-    _i2cPort = &wirePort;
+	// Set device address and wire port to private variable
+	_deviceAddress = deviceAddress;
+	_i2cPort = &wirePort;
 
-    if (isConnected() == false)
-    {
-        return false;
-    }
-    // Read PROD_ID register
-    byte prodIDValue = readRegister(PROD_ID);
+	if (isConnected() == false)
+	{
+		return false;
+	}
+	// Read PROD_ID register
+	byte prodIDValue = readRegister(PROD_ID);
 
-    // PROD_ID should always be 0x6D
-    if (prodIDValue != PROD_ID_VALUE)
-    {
-        return false;
-    }
+	// PROD_ID should always be 0x6D
+	if (prodIDValue != PROD_ID_VALUE)
+	{
+		return false;
+	}
 
 	// Disable double Interrupt on touch and release
 	/// \todo should be in a function and not fixed
@@ -64,9 +54,9 @@ bool CAP1293::begin(TwoWire &wirePort, uint8_t deviceAddress)
 	writeRegister(CONFIG_2, controlReg2);
 
 	setSensitivity(SENSITIVITY_2X); // Set sensitivity to 2x on startup
-    setInterruptEnabled();          // Enable INT as default
-    clearInterrupt();               // Clear interrupt on startup
-    return true;
+	setInterruptEnabled();			// Enable INT as default
+	clearInterrupt();				// Clear interrupt on startup
+	return true;
 }
 
 /* IS CONNECTED 
@@ -75,19 +65,19 @@ bool CAP1293::begin(TwoWire &wirePort, uint8_t deviceAddress)
 */
 bool CAP1293::isConnected()
 {
-    for (byte i = 0; i < 5; i++)
-    {
-        /* After inspecting with logic analyzer, the device fails
+	for (byte i = 0; i < 5; i++)
+	{
+		/* After inspecting with logic analyzer, the device fails
             to connect for unknown reasons. The device typically connects
             after two calls. We included a for loop to allow for 
             multiple calls to the device.
         */
-        _i2cPort->beginTransmission((uint8_t)_deviceAddress);
-        if (_i2cPort->endTransmission() == 0)
-            return (true); //Sensor did not ACK
-    }
+		_i2cPort->beginTransmission((uint8_t)_deviceAddress);
+		if (_i2cPort->endTransmission() == 0)
+			return (true); //Sensor did not ACK
+	}
 
-    return (false);
+	return (false);
 }
 
 /* CHECK MAIN CONTROL REGISTER
@@ -96,8 +86,8 @@ bool CAP1293::isConnected()
 */
 void CAP1293::checkMainControl()
 {
-    MAIN_CONTROL_REG reg;
-    reg.MAIN_CONTROL_COMBINED = readRegister(MAIN_CONTROL);
+	MAIN_CONTROL_REG reg;
+	reg.MAIN_CONTROL_COMBINED = readRegister(MAIN_CONTROL);
 }
 
 /* CHECK STATUS
@@ -106,8 +96,8 @@ void CAP1293::checkMainControl()
 */
 void CAP1293::checkStatus()
 {
-    GENERAL_STATUS_REG reg;
-    reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
+	GENERAL_STATUS_REG reg;
+	reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
 }
 
 /* CLEAR INTTERUPT 
@@ -117,10 +107,10 @@ void CAP1293::checkStatus()
 */
 void CAP1293::clearInterrupt()
 {
-    MAIN_CONTROL_REG reg;
-    reg.MAIN_CONTROL_COMBINED = readRegister(MAIN_CONTROL);
-    reg.MAIN_CONTROL_FIELDS.INT = 0x00;
-    writeRegister(MAIN_CONTROL, reg.MAIN_CONTROL_COMBINED);
+	MAIN_CONTROL_REG reg;
+	reg.MAIN_CONTROL_COMBINED = readRegister(MAIN_CONTROL);
+	reg.MAIN_CONTROL_FIELDS.INT = 0x00;
+	writeRegister(MAIN_CONTROL, reg.MAIN_CONTROL_COMBINED);
 }
 
 /* DISABLE INTERRUPTS 
@@ -130,12 +120,12 @@ void CAP1293::clearInterrupt()
 */
 void CAP1293::setInterruptDisabled()
 {
-    INTERRUPT_ENABLE_REG reg;
-    reg.INTERRUPT_ENABLE_COMBINED = readRegister(INTERRUPT_ENABLE);
-    reg.INTERRUPT_ENABLE_FIELDS.CS1_INT_EN = 0x00;
-    reg.INTERRUPT_ENABLE_FIELDS.CS2_INT_EN = 0x00;
-    reg.INTERRUPT_ENABLE_FIELDS.CS3_INT_EN = 0x00;
-    writeRegister(INTERRUPT_ENABLE, reg.INTERRUPT_ENABLE_COMBINED);
+	INTERRUPT_ENABLE_REG reg;
+	reg.INTERRUPT_ENABLE_COMBINED = readRegister(INTERRUPT_ENABLE);
+	reg.INTERRUPT_ENABLE_FIELDS.CS1_INT_EN = 0x00;
+	reg.INTERRUPT_ENABLE_FIELDS.CS2_INT_EN = 0x00;
+	reg.INTERRUPT_ENABLE_FIELDS.CS3_INT_EN = 0x00;
+	writeRegister(INTERRUPT_ENABLE, reg.INTERRUPT_ENABLE_COMBINED);
 }
 
 /* ENABLE INTERRUPTS
@@ -144,12 +134,12 @@ void CAP1293::setInterruptDisabled()
 */
 void CAP1293::setInterruptEnabled()
 {
-    INTERRUPT_ENABLE_REG reg;
-    reg.INTERRUPT_ENABLE_COMBINED = readRegister(INTERRUPT_ENABLE);
-    reg.INTERRUPT_ENABLE_FIELDS.CS1_INT_EN = 0x01;
-    reg.INTERRUPT_ENABLE_FIELDS.CS2_INT_EN = 0x01;
-    reg.INTERRUPT_ENABLE_FIELDS.CS3_INT_EN = 0x01;
-    writeRegister(INTERRUPT_ENABLE, reg.INTERRUPT_ENABLE_COMBINED);
+	INTERRUPT_ENABLE_REG reg;
+	reg.INTERRUPT_ENABLE_COMBINED = readRegister(INTERRUPT_ENABLE);
+	reg.INTERRUPT_ENABLE_FIELDS.CS1_INT_EN = 0x01;
+	reg.INTERRUPT_ENABLE_FIELDS.CS2_INT_EN = 0x01;
+	reg.INTERRUPT_ENABLE_FIELDS.CS3_INT_EN = 0x01;
+	writeRegister(INTERRUPT_ENABLE, reg.INTERRUPT_ENABLE_COMBINED);
 }
 
 /* IS INTERRUPT ENABLED
@@ -159,13 +149,13 @@ void CAP1293::setInterruptEnabled()
 */
 bool CAP1293::isInterruptEnabled()
 {
-    INTERRUPT_ENABLE_REG reg;
-    reg.INTERRUPT_ENABLE_COMBINED = readRegister(INTERRUPT_ENABLE);
-    if (reg.INTERRUPT_ENABLE_FIELDS.CS1_INT_EN == 0x01 && reg.INTERRUPT_ENABLE_FIELDS.CS2_INT_EN == 0x01 && reg.INTERRUPT_ENABLE_FIELDS.CS3_INT_EN == 0x01)
-    {
-        return true;
-    }
-    return false;
+	INTERRUPT_ENABLE_REG reg;
+	reg.INTERRUPT_ENABLE_COMBINED = readRegister(INTERRUPT_ENABLE);
+	if (reg.INTERRUPT_ENABLE_FIELDS.CS1_INT_EN == 0x01 && reg.INTERRUPT_ENABLE_FIELDS.CS2_INT_EN == 0x01 && reg.INTERRUPT_ENABLE_FIELDS.CS3_INT_EN == 0x01)
+	{
+		return true;
+	}
+	return false;
 }
 
 /* SET SENSITIVITY
@@ -175,42 +165,42 @@ bool CAP1293::isInterruptEnabled()
 */
 void CAP1293::setSensitivity(uint8_t sensitivity)
 {
-    SENSITIVITY_CONTROL_REG reg;
-    reg.SENSITIVITY_CONTROL_COMBINED = readRegister(SENSITIVITY_CONTROL);
-    if (sensitivity == SENSITIVITY_128X)
-    {
-        reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_128X;
-    }
-    else if (sensitivity == SENSITIVITY_64X)
-    {
-        reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_64X;
-    }
-    else if (sensitivity == SENSITIVITY_32X)
-    {
-        reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_32X;
-    }
-    else if (sensitivity == SENSITIVITY_16X)
-    {
-        reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_16X;
-    }
-    else if (sensitivity == SENSITIVITY_8X)
-    {
-        reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_8X;
-    }
-    else if (sensitivity == SENSITIVITY_4X)
-    {
-        reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_4X;
-    }
-    else if (sensitivity == SENSITIVITY_1X)
-    {
-        reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_1X;
-    }
-    else
-    {
-        // Default case: calibrated for CAP1293 touch sensor
-        reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_2X;
-    }
-    writeRegister(SENSITIVITY_CONTROL, reg.SENSITIVITY_CONTROL_COMBINED);
+	SENSITIVITY_CONTROL_REG reg;
+	reg.SENSITIVITY_CONTROL_COMBINED = readRegister(SENSITIVITY_CONTROL);
+	if (sensitivity == SENSITIVITY_128X)
+	{
+		reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_128X;
+	}
+	else if (sensitivity == SENSITIVITY_64X)
+	{
+		reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_64X;
+	}
+	else if (sensitivity == SENSITIVITY_32X)
+	{
+		reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_32X;
+	}
+	else if (sensitivity == SENSITIVITY_16X)
+	{
+		reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_16X;
+	}
+	else if (sensitivity == SENSITIVITY_8X)
+	{
+		reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_8X;
+	}
+	else if (sensitivity == SENSITIVITY_4X)
+	{
+		reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_4X;
+	}
+	else if (sensitivity == SENSITIVITY_1X)
+	{
+		reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_1X;
+	}
+	else
+	{
+		// Default case: calibrated for CAP1293 touch sensor
+		reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE = SENSITIVITY_2X;
+	}
+	writeRegister(SENSITIVITY_CONTROL, reg.SENSITIVITY_CONTROL_COMBINED);
 }
 
 /* GET SENSITIVITY
@@ -218,46 +208,46 @@ void CAP1293::setSensitivity(uint8_t sensitivity)
 */
 uint8_t CAP1293::getSensitivity()
 {
-    SENSITIVITY_CONTROL_REG reg;
-    reg.SENSITIVITY_CONTROL_COMBINED = readRegister(SENSITIVITY_CONTROL);
-    uint16_t sensitivity = reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE;
-    if (sensitivity == SENSITIVITY_128X)
-    {
-        return 128;
-    }
-    else if (sensitivity == SENSITIVITY_64X)
-    {
-        return 64;
-    }
-    else if (sensitivity == SENSITIVITY_32X)
-    {
-        return 32;
-    }
-    else if (sensitivity == SENSITIVITY_16X)
-    {
-        return 16;
-    }
-    else if (sensitivity == SENSITIVITY_8X)
-    {
-        return 8;
-    }
-    else if (sensitivity == SENSITIVITY_4X)
-    {
-        return 4;
-    }
-    else if (sensitivity == SENSITIVITY_2X)
-    {
-        return 2;
-    }
-    else if (sensitivity == SENSITIVITY_1X)
-    {
-        return 1;
-    }
-    else
-    {
-        // Error - no possible register value
-        return 0;
-    }
+	SENSITIVITY_CONTROL_REG reg;
+	reg.SENSITIVITY_CONTROL_COMBINED = readRegister(SENSITIVITY_CONTROL);
+	uint16_t sensitivity = reg.SENSITIVITY_CONTROL_FIELDS.DELTA_SENSE;
+	if (sensitivity == SENSITIVITY_128X)
+	{
+		return 128;
+	}
+	else if (sensitivity == SENSITIVITY_64X)
+	{
+		return 64;
+	}
+	else if (sensitivity == SENSITIVITY_32X)
+	{
+		return 32;
+	}
+	else if (sensitivity == SENSITIVITY_16X)
+	{
+		return 16;
+	}
+	else if (sensitivity == SENSITIVITY_8X)
+	{
+		return 8;
+	}
+	else if (sensitivity == SENSITIVITY_4X)
+	{
+		return 4;
+	}
+	else if (sensitivity == SENSITIVITY_2X)
+	{
+		return 2;
+	}
+	else if (sensitivity == SENSITIVITY_1X)
+	{
+		return 1;
+	}
+	else
+	{
+		// Error - no possible register value
+		return 0;
+	}
 }
 
 /* LEFT SENSOR TOUCHED
@@ -267,16 +257,16 @@ uint8_t CAP1293::getSensitivity()
 */
 bool CAP1293::isLeftTouched()
 {
-    SENSOR_INPUT_STATUS_REG reg;
-    reg.SENSOR_INPUT_STATUS_COMBINED = readRegister(SENSOR_INPUT_STATUS);
+	SENSOR_INPUT_STATUS_REG reg;
+	reg.SENSOR_INPUT_STATUS_COMBINED = readRegister(SENSOR_INPUT_STATUS);
 
-    // Touch detected
-    if (reg.SENSOR_INPUT_STATUS_FIELDS.CS1 == ON)
-    {
-        clearInterrupt();
-        return true;
-    }
-    return false;
+	// Touch detected
+	if (reg.SENSOR_INPUT_STATUS_FIELDS.CS1 == ON)
+	{
+		clearInterrupt();
+		return true;
+	}
+	return false;
 }
 
 /* MIDDLE SENSOR TOUCHED
@@ -286,16 +276,16 @@ bool CAP1293::isLeftTouched()
 */
 bool CAP1293::isMiddleTouched()
 {
-    SENSOR_INPUT_STATUS_REG reg;
-    reg.SENSOR_INPUT_STATUS_COMBINED = readRegister(SENSOR_INPUT_STATUS);
+	SENSOR_INPUT_STATUS_REG reg;
+	reg.SENSOR_INPUT_STATUS_COMBINED = readRegister(SENSOR_INPUT_STATUS);
 
-    // Touch detected
-    if (reg.SENSOR_INPUT_STATUS_FIELDS.CS2 == ON)
-    {
-        clearInterrupt();
-        return true;
-    }
-    return false;
+	// Touch detected
+	if (reg.SENSOR_INPUT_STATUS_FIELDS.CS2 == ON)
+	{
+		clearInterrupt();
+		return true;
+	}
+	return false;
 }
 
 /* RIGHT SENSOR TOUCHED
@@ -305,16 +295,16 @@ bool CAP1293::isMiddleTouched()
 */
 bool CAP1293::isRightTouched()
 {
-    SENSOR_INPUT_STATUS_REG reg;
-    reg.SENSOR_INPUT_STATUS_COMBINED = readRegister(SENSOR_INPUT_STATUS);
+	SENSOR_INPUT_STATUS_REG reg;
+	reg.SENSOR_INPUT_STATUS_COMBINED = readRegister(SENSOR_INPUT_STATUS);
 
-    // Touch detected
-    if (reg.SENSOR_INPUT_STATUS_FIELDS.CS3 == ON)
-    {
-        clearInterrupt();
-        return true;
-    }
-    return false;
+	// Touch detected
+	if (reg.SENSOR_INPUT_STATUS_FIELDS.CS3 == ON)
+	{
+		clearInterrupt();
+		return true;
+	}
+	return false;
 }
 
 /* DETECT TOUCH
@@ -324,16 +314,16 @@ bool CAP1293::isRightTouched()
 */
 bool CAP1293::isTouched()
 {
-    GENERAL_STATUS_REG reg;
-    reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
+	GENERAL_STATUS_REG reg;
+	reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
 
-    // Touch detected
-    if (reg.GENERAL_STATUS_FIELDS.TOUCH == ON)
-    {
-        clearInterrupt();
-        return true;
-    }
-    return false;
+	// Touch detected
+	if (reg.GENERAL_STATUS_FIELDS.TOUCH == ON)
+	{
+		clearInterrupt();
+		return true;
+	}
+	return false;
 }
 
 /* IS RIGHT SWIPE
@@ -343,59 +333,59 @@ bool CAP1293::isTouched()
 */
 bool CAP1293::isRightSwipePulled()
 {
-    bool swipe = false; // Tracks if conditions are being met
-    unsigned long startTime = millis();
+	bool swipe = false; // Tracks if conditions are being met
+	unsigned long startTime = millis();
 
-    // LEFT TOUCH CONDITION
-    while ((millis() - startTime) < 100)
-    {
-        if (isLeftTouched() == true)
-        {
-            swipe = true;
-            while (isLeftTouched() == true)
-                ;  // Wait for user to remove their finger
-            break; // Break out of loop
-        }
-    }
+	// LEFT TOUCH CONDITION
+	while ((millis() - startTime) < 100)
+	{
+		if (isLeftTouched() == true)
+		{
+			swipe = true;
+			while (isLeftTouched() == true)
+				;  // Wait for user to remove their finger
+			break; // Break out of loop
+		}
+	}
 
-    // Return if left not touched
-    if (swipe == false)
-        return false;
+	// Return if left not touched
+	if (swipe == false)
+		return false;
 
-    startTime = millis(); // Reset start time
-    swipe = false;        // Reset check statement
+	startTime = millis(); // Reset start time
+	swipe = false;		  // Reset check statement
 
-    // MIDDLE TOUCH CONDITION
-    while ((millis() - startTime) < 100)
-    {
-        if (isMiddleTouched() == true)
-        {
-            swipe = true;
-            while (isMiddleTouched() == true)
-                ;  // Wait for user to remove their finger
-            break; // Break out of loop
-        }
-    }
+	// MIDDLE TOUCH CONDITION
+	while ((millis() - startTime) < 100)
+	{
+		if (isMiddleTouched() == true)
+		{
+			swipe = true;
+			while (isMiddleTouched() == true)
+				;  // Wait for user to remove their finger
+			break; // Break out of loop
+		}
+	}
 
-    // Return if middle not touched
-    if (swipe == false)
-    {
-        return false;
-    }
+	// Return if middle not touched
+	if (swipe == false)
+	{
+		return false;
+	}
 
-    startTime = millis(); // Reset start time
-    swipe = false;        // Reset check statement
+	startTime = millis(); // Reset start time
+	swipe = false;		  // Reset check statement
 
-    // RIGHT TOUCH CONDITION
-    while ((millis() - startTime) < 100)
-    {
-        if (isRightTouched() == true)
-        {
-            return true;
-        }
-    }
+	// RIGHT TOUCH CONDITION
+	while ((millis() - startTime) < 100)
+	{
+		if (isRightTouched() == true)
+		{
+			return true;
+		}
+	}
 
-    return false;
+	return false;
 }
 
 /* IS LEFT SWIPE PULLED
@@ -405,57 +395,57 @@ bool CAP1293::isRightSwipePulled()
 */
 bool CAP1293::isLeftSwipePulled()
 {
-    bool swipe = false; // Tracks if conditions are being met
-    unsigned long startTime = millis();
+	bool swipe = false; // Tracks if conditions are being met
+	unsigned long startTime = millis();
 
-    // RIGHT TOUCH CONDITION
-    while ((millis() - startTime) < 100)
-    {
-        if (isRightTouched() == true)
-        {
-            swipe = true;
-            while (isRightTouched() == true)
-                ;  // Wait for user to remove their finger
-            break; // Break out of loop
-        }
-    }
+	// RIGHT TOUCH CONDITION
+	while ((millis() - startTime) < 100)
+	{
+		if (isRightTouched() == true)
+		{
+			swipe = true;
+			while (isRightTouched() == true)
+				;  // Wait for user to remove their finger
+			break; // Break out of loop
+		}
+	}
 
-    // Return if right not touched
-    if (swipe == false)
-        return false;
+	// Return if right not touched
+	if (swipe == false)
+		return false;
 
-    startTime = millis(); // Reset start time
-    swipe = false;        // Reset check statement
+	startTime = millis(); // Reset start time
+	swipe = false;		  // Reset check statement
 
-    // MIDDLE TOUCH CONDITION
-    while ((millis() - startTime) < 100)
-    {
-        if (isMiddleTouched() == true)
-        {
-            swipe = true;
-            while (isMiddleTouched() == true)
-                ;  // Wait for user to remove their finger
-            break; // Break out of loop
-        }
-    }
+	// MIDDLE TOUCH CONDITION
+	while ((millis() - startTime) < 100)
+	{
+		if (isMiddleTouched() == true)
+		{
+			swipe = true;
+			while (isMiddleTouched() == true)
+				;  // Wait for user to remove their finger
+			break; // Break out of loop
+		}
+	}
 
-    // Return if middle not touched
-    if (swipe == false)
-        return false;
+	// Return if middle not touched
+	if (swipe == false)
+		return false;
 
-    startTime = millis(); // Reset start time
-    swipe = false;        // Reset check statement
+	startTime = millis(); // Reset start time
+	swipe = false;		  // Reset check statement
 
-    // LEFT TOUCH CONDITION
-    while ((millis() - startTime) < 100)
-    {
-        if (isLeftTouched() == true)
-        {
-            return true;
-        }
-    }
+	// LEFT TOUCH CONDITION
+	while ((millis() - startTime) < 100)
+	{
+		if (isLeftTouched() == true)
+		{
+			return true;
+		}
+	}
 
-    return false;
+	return false;
 }
 
 /* SET POWER BUTTON PAD
@@ -464,29 +454,29 @@ bool CAP1293::isLeftSwipePulled()
 */
 bool CAP1293::setPowerButtonPad(uint8_t pad)
 {
-    POWER_BUTTON_REG reg;
-    reg.POWER_BUTTON_COMBINED = readRegister(POWER_BUTTON);
+	POWER_BUTTON_REG reg;
+	reg.POWER_BUTTON_COMBINED = readRegister(POWER_BUTTON);
 
-    // Set pad to act as power button (pg. 43)
-    if (pad == PAD_LEFT)
-    {
-        reg.POWER_BUTTON_FIELDS.PWR_BTN = PWR_CS1;
-    }
-    else if (pad == PAD_MIDDLE)
-    {
-        reg.POWER_BUTTON_FIELDS.PWR_BTN = PWR_CS2;
-    }
-    else if (pad == PAD_RIGHT)
-    {
-        reg.POWER_BUTTON_FIELDS.PWR_BTN = PWR_CS3;
-    }
-    else
-    {
-        // User input invalid pad number
-        return false;
-    }
-    writeRegister(POWER_BUTTON, reg.POWER_BUTTON_COMBINED);
-    return true;
+	// Set pad to act as power button (pg. 43)
+	if (pad == PAD_LEFT)
+	{
+		reg.POWER_BUTTON_FIELDS.PWR_BTN = PWR_CS1;
+	}
+	else if (pad == PAD_MIDDLE)
+	{
+		reg.POWER_BUTTON_FIELDS.PWR_BTN = PWR_CS2;
+	}
+	else if (pad == PAD_RIGHT)
+	{
+		reg.POWER_BUTTON_FIELDS.PWR_BTN = PWR_CS3;
+	}
+	else
+	{
+		// User input invalid pad number
+		return false;
+	}
+	writeRegister(POWER_BUTTON, reg.POWER_BUTTON_COMBINED);
+	return true;
 }
 
 /* GET POWER BUTTON PAD
@@ -502,10 +492,10 @@ bool CAP1293::setPowerButtonPad(uint8_t pad)
 */
 uint8_t CAP1293::getPowerButtonPad()
 {
-    POWER_BUTTON_REG reg;
-    reg.POWER_BUTTON_COMBINED = readRegister(POWER_BUTTON);
+	POWER_BUTTON_REG reg;
+	reg.POWER_BUTTON_COMBINED = readRegister(POWER_BUTTON);
 
-    return (reg.POWER_BUTTON_FIELDS.PWR_BTN + 1);
+	return (reg.POWER_BUTTON_FIELDS.PWR_BTN + 1);
 }
 
 /* SET POWER BUTTON TIME
@@ -518,31 +508,31 @@ uint8_t CAP1293::getPowerButtonPad()
 */
 bool CAP1293::setPowerButtonTime(uint8_t inputTime)
 {
-    POWER_BUTTON_CONFIG_REG reg;
-    reg.POWER_BUTTON_CONFIG_COMBINED = readRegister(POWER_BUTTON_CONFIG);
-    if (inputTime == PWR_TIME_280_MS)
-    {
-        reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME = PWR_TIME_280_MS;
-    }
-    else if (inputTime == PWR_TIME_560_MS)
-    {
-        reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME = PWR_TIME_560_MS;
-    }
-    else if (inputTime == PWR_TIME_1120_MS)
-    {
-        reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME = PWR_TIME_1120_MS;
-    }
-    else if (inputTime == PWR_TIME_2240_MS)
-    {
-        reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME = PWR_TIME_2240_MS;
-    }
-    else
-    {
-        // User input invalid time
-        return false;
-    }
-    writeRegister(POWER_BUTTON_CONFIG, reg.POWER_BUTTON_CONFIG_COMBINED);
-    return true;
+	POWER_BUTTON_CONFIG_REG reg;
+	reg.POWER_BUTTON_CONFIG_COMBINED = readRegister(POWER_BUTTON_CONFIG);
+	if (inputTime == PWR_TIME_280_MS)
+	{
+		reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME = PWR_TIME_280_MS;
+	}
+	else if (inputTime == PWR_TIME_560_MS)
+	{
+		reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME = PWR_TIME_560_MS;
+	}
+	else if (inputTime == PWR_TIME_1120_MS)
+	{
+		reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME = PWR_TIME_1120_MS;
+	}
+	else if (inputTime == PWR_TIME_2240_MS)
+	{
+		reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME = PWR_TIME_2240_MS;
+	}
+	else
+	{
+		// User input invalid time
+		return false;
+	}
+	writeRegister(POWER_BUTTON_CONFIG, reg.POWER_BUTTON_CONFIG_COMBINED);
+	return true;
 }
 
 /* GET POWER BUTTON TIME
@@ -558,26 +548,26 @@ bool CAP1293::setPowerButtonTime(uint8_t inputTime)
 */
 uint16_t CAP1293::getPowerButtonTime()
 {
-    POWER_BUTTON_CONFIG_REG reg;
-    reg.POWER_BUTTON_CONFIG_COMBINED = readRegister(POWER_BUTTON_CONFIG);
-    if (reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME == PWR_TIME_280_MS)
-    {
-        return 280;
-    }
-    else if (reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME == PWR_TIME_560_MS)
-    {
-        return 560;
-    }
-    else if (reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME == PWR_TIME_1120_MS)
-    {
-        return 1120;
-    }
-    else if (reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME == PWR_TIME_2240_MS)
-    {
-        return 2240;
-    }
-    // Invalid data reading - check hook up
-    return 0;
+	POWER_BUTTON_CONFIG_REG reg;
+	reg.POWER_BUTTON_CONFIG_COMBINED = readRegister(POWER_BUTTON_CONFIG);
+	if (reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME == PWR_TIME_280_MS)
+	{
+		return 280;
+	}
+	else if (reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME == PWR_TIME_560_MS)
+	{
+		return 560;
+	}
+	else if (reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME == PWR_TIME_1120_MS)
+	{
+		return 1120;
+	}
+	else if (reg.POWER_BUTTON_CONFIG_FIELDS.PWR_TIME == PWR_TIME_2240_MS)
+	{
+		return 2240;
+	}
+	// Invalid data reading - check hook up
+	return 0;
 }
 
 /* SET POWER BUTTON ENABLED
@@ -586,10 +576,10 @@ uint16_t CAP1293::getPowerButtonTime()
 */
 void CAP1293::setPowerButtonEnabled()
 {
-    POWER_BUTTON_CONFIG_REG reg;
-    reg.POWER_BUTTON_CONFIG_COMBINED = readRegister(POWER_BUTTON_CONFIG);
-    reg.POWER_BUTTON_CONFIG_FIELDS.PWR_EN = 0x01;
-    writeRegister(POWER_BUTTON_CONFIG, reg.POWER_BUTTON_CONFIG_COMBINED);
+	POWER_BUTTON_CONFIG_REG reg;
+	reg.POWER_BUTTON_CONFIG_COMBINED = readRegister(POWER_BUTTON_CONFIG);
+	reg.POWER_BUTTON_CONFIG_FIELDS.PWR_EN = 0x01;
+	writeRegister(POWER_BUTTON_CONFIG, reg.POWER_BUTTON_CONFIG_COMBINED);
 }
 
 /* SET POWER BUTTON DISABLED
@@ -598,10 +588,10 @@ void CAP1293::setPowerButtonEnabled()
 */
 void CAP1293::setPowerButtonDisabled()
 {
-    POWER_BUTTON_CONFIG_REG reg;
-    reg.POWER_BUTTON_CONFIG_COMBINED = readRegister(POWER_BUTTON_CONFIG);
-    reg.POWER_BUTTON_CONFIG_FIELDS.PWR_EN = 0x00;
-    writeRegister(POWER_BUTTON_CONFIG, reg.POWER_BUTTON_CONFIG_COMBINED);
+	POWER_BUTTON_CONFIG_REG reg;
+	reg.POWER_BUTTON_CONFIG_COMBINED = readRegister(POWER_BUTTON_CONFIG);
+	reg.POWER_BUTTON_CONFIG_FIELDS.PWR_EN = 0x00;
+	writeRegister(POWER_BUTTON_CONFIG, reg.POWER_BUTTON_CONFIG_COMBINED);
 }
 
 /* IS POWER BUTTON ENABLED
@@ -611,15 +601,15 @@ void CAP1293::setPowerButtonDisabled()
 */
 bool CAP1293::isPowerButtonEnabled()
 {
-    POWER_BUTTON_CONFIG_REG reg;
-    reg.POWER_BUTTON_CONFIG_COMBINED = readRegister(POWER_BUTTON_CONFIG);
-    if (reg.POWER_BUTTON_CONFIG_FIELDS.PWR_EN == 0x01)
-    {
-        // Power button enabled
-        return true;
-    }
-    // Power button disabled
-    return false;
+	POWER_BUTTON_CONFIG_REG reg;
+	reg.POWER_BUTTON_CONFIG_COMBINED = readRegister(POWER_BUTTON_CONFIG);
+	if (reg.POWER_BUTTON_CONFIG_FIELDS.PWR_EN == 0x01)
+	{
+		// Power button enabled
+		return true;
+	}
+	// Power button disabled
+	return false;
 }
 
 /* IS POWER BUTTON TOUCHED
@@ -630,15 +620,15 @@ bool CAP1293::isPowerButtonEnabled()
 */
 bool CAP1293::isPowerButtonTouched()
 {
-    GENERAL_STATUS_REG reg;
-    reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
+	GENERAL_STATUS_REG reg;
+	reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
 
-    if (reg.GENERAL_STATUS_FIELDS.PWR == ON)
-    {
-        clearInterrupt();
-        return true;
-    }
-    return false;
+	if (reg.GENERAL_STATUS_FIELDS.PWR == ON)
+	{
+		clearInterrupt();
+		return true;
+	}
+	return false;
 }
 
 /* READ A SINGLE REGISTER
@@ -646,20 +636,20 @@ bool CAP1293::isPowerButtonTouched()
 */
 byte CAP1293::readRegister(CAP1293_Register reg)
 {
-    _i2cPort->beginTransmission(_deviceAddress);
-    _i2cPort->write(reg);
-    _i2cPort->endTransmission(false);               // endTransmission but keep the connection active
-    _i2cPort->requestFrom(_deviceAddress, (byte)1); // Ask for 1 byte, once done, bus is released by default
+	_i2cPort->beginTransmission(_deviceAddress);
+	_i2cPort->write(reg);
+	_i2cPort->endTransmission(false);				// endTransmission but keep the connection active
+	_i2cPort->requestFrom(_deviceAddress, (byte)1); // Ask for 1 byte, once done, bus is released by default
 
-    // Wait for the data to come back
-    if (_i2cPort->available())
-    {
-        return _i2cPort->read(); // Return this one byte
-    }
-    else
-    {
-        return 0;
-    }
+	// Wait for the data to come back
+	if (_i2cPort->available())
+	{
+		return _i2cPort->read(); // Return this one byte
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 /* READ MULTIPLE REGISTERS
@@ -668,18 +658,18 @@ byte CAP1293::readRegister(CAP1293_Register reg)
 */
 void CAP1293::readRegisters(CAP1293_Register reg, byte *buffer, byte len)
 {
-    _i2cPort->beginTransmission(_deviceAddress);
-    _i2cPort->write(reg);
-    _i2cPort->endTransmission(false);           // endTransmission but keep the connection active
-    _i2cPort->requestFrom(_deviceAddress, len); // Ask for bytes, once done, bus is released by default
+	_i2cPort->beginTransmission(_deviceAddress);
+	_i2cPort->write(reg);
+	_i2cPort->endTransmission(false);			// endTransmission but keep the connection active
+	_i2cPort->requestFrom(_deviceAddress, len); // Ask for bytes, once done, bus is released by default
 
-    // Wait for data to come back
-    if (_i2cPort->available() == len)
-    {
-        // Iterate through data from buffer
-        for (int i = 0; i < len; i++)
-            buffer[i] = _i2cPort->read();
-    }
+	// Wait for data to come back
+	if (_i2cPort->available() == len)
+	{
+		// Iterate through data from buffer
+		for (int i = 0; i < len; i++)
+			buffer[i] = _i2cPort->read();
+	}
 }
 
 /* WRITE TO A SINGLE REGISTER
@@ -687,7 +677,7 @@ void CAP1293::readRegisters(CAP1293_Register reg, byte *buffer, byte len)
 */
 void CAP1293::writeRegister(CAP1293_Register reg, byte data)
 {
-    writeRegisters(reg, &data, 1);
+	writeRegisters(reg, &data, 1);
 }
 
 /* WRITE TO MULTIPLE REGISTERS
@@ -696,9 +686,9 @@ void CAP1293::writeRegister(CAP1293_Register reg, byte data)
 */
 void CAP1293::writeRegisters(CAP1293_Register reg, byte *buffer, byte len)
 {
-    _i2cPort->beginTransmission(_deviceAddress);
-    _i2cPort->write(reg);
-    for (int i = 0; i < len; i++)
-        _i2cPort->write(buffer[i]);
-    _i2cPort->endTransmission(); // Stop transmitting
+	_i2cPort->beginTransmission(_deviceAddress);
+	_i2cPort->write(reg);
+	for (int i = 0; i < len; i++)
+		_i2cPort->write(buffer[i]);
+	_i2cPort->endTransmission(); // Stop transmitting
 }
