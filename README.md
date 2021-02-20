@@ -1,5 +1,5 @@
-| <center><img src="./assets/rakstar.jpg" alt="RAKstar" width=25%></center>  | ![RAKWireless](./assets/RAK-Whirls.png) |
-| -- | -- |
+| <center><img src="./assets/rakstar.jpg" alt="RAKstar" width=25%></center>  | ![RAKWireless](./assets/RAK-Whirls.png) | [![Build Status](https://github.com/RAKWireless/RAK14002-CAP1293-Library/workflows/Arduino%20Library%20CI/badge.svg)](https://github.com/RAKWireless/RAK14002-CAP1293-Library/actions) |
+| -- | -- | -- |
 
 RAK14002 Capacitive Touch Button
 ========================================
