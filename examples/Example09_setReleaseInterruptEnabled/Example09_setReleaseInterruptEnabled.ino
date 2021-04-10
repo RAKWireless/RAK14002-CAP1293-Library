@@ -1,9 +1,9 @@
 /**
-   @file Example06_DisableInterrupt.ino
+   @file Example09_setReleaseInterruptEnabled.ino
    @author taylor.lee (taylor.lee@rakwireless.com)
-   @brief Disabled interrupt example for CAP1293 touch sensor IC
+   @brief Set release interrupt example for CAP1293 touch sensor IC
    @version 0.1
-   @date 2021-02-18
+   @date 2021-03-08
 
    @copyright Copyright (c) 2021
 
@@ -57,14 +57,13 @@ void setup()
   attachInterrupt(gInterruptPin, interruptHandle, FALLING);
 
   /*
-     Interrupt is enabled at begin() function,
-     if you want disable it, please call setInterruptDisabled()
-       When interrupt disabled is set, MCU cannot detect touch and release event.
+     Release Interrupt is disabled at begin() function,
+     if you want enable it, please call setReleaseInterruptEnabled()
   */
-  sensor.setInterruptDisabled();
+  sensor.setReleaseInterruptEnabled();
 
-  Serial.print("Interrupt: ");
-  if (sensor.isInterruptEnabled() == true)
+  Serial.print("Release Interrupt: ");
+  if (sensor.isReleaseInterruptEnabled() == true)
   {
     Serial.println("ENABLED");
   }
@@ -92,6 +91,13 @@ void loop()
         {
           Serial.println("Left Pressed");
         }
+        if (sensor.isReleaseInterruptEnabled())
+        {
+          if (keyStatus[0] == false)
+          {
+            Serial.println("Left Released");
+          }
+        }
       }
 
       // Middle
@@ -101,6 +107,13 @@ void loop()
         {
           Serial.println("Middle Pressed");
         }
+        if (sensor.isReleaseInterruptEnabled())
+        {
+          if (keyStatus[1] == false)
+          {
+            Serial.println("Middle Released");
+          }
+        }
       }
 
       // Right
@@ -109,6 +122,13 @@ void loop()
         if (keyStatus[2] == true)
         {
           Serial.println("Right Pressed");
+        }
+        if (sensor.isReleaseInterruptEnabled())
+        {
+          if (keyStatus[2] == false)
+          {
+            Serial.println("Right Released");
+          }
         }
       }
     }

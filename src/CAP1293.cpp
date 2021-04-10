@@ -45,12 +45,10 @@ bool CAP1293::begin(TwoWire &wirePort, uint8_t deviceAddress)
 		return false;
 	}
 
-	// Disable double Interrupt on touch and release
-	/// \todo should be in a function and not fixed
-	byte controlReg2 = readRegister(CONFIG_2);
-	controlReg2 = controlReg2 | 0b00000001;
-	writeRegister(CONFIG_2, controlReg2);
-
+	setRepeatRateDisabled();        // disable repeat interrupts
+	setForceCalibrateEnabled();     // force calibrate
+	setMultiTouchEnabled();         // enable Multiple touch
+	setReleaseInterruptDisabled();  // disable Release interrupt
 	setSensitivity(SENSITIVITY_2X); // Set sensitivity to 2x on startup
 	setInterruptEnabled();			// Enable INT as default
 	clearInterrupt();				// Clear interrupt on startup
@@ -82,20 +80,20 @@ bool CAP1293::isConnected()
     Control the primary power state of the device. See data sheet
     on Main Control Register (pg. 22).
 */
-void CAP1293::checkMainControl()
+uint8_t CAP1293::checkMainControl()
 {
-	MAIN_CONTROL_REG reg;
-	reg.MAIN_CONTROL_COMBINED = readRegister(MAIN_CONTROL);
+	// MAIN_CONTROL_REG reg;
+	return readRegister(MAIN_CONTROL);
 }
 
 /* CHECK STATUS
     Checks inputs in the general status register to ensure program
     is set up correctly. See data sheet on Status Registers (pg. 23).
 */
-void CAP1293::checkStatus()
+uint8_t CAP1293::checkStatus()
 {
-	GENERAL_STATUS_REG reg;
-	reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
+	// GENERAL_STATUS_REG reg;
+	return readRegister(GENERAL_STATUS);
 }
 
 /* CLEAR INTTERUPT 
@@ -258,8 +256,11 @@ bool CAP1293::isLeftTouched()
 	SENSOR_INPUT_STATUS_REG reg;
 	reg.SENSOR_INPUT_STATUS_COMBINED = readRegister(SENSOR_INPUT_STATUS);
 
+	GENERAL_STATUS_REG status_reg;
+	status_reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
+
 	// Touch detected
-	if (reg.SENSOR_INPUT_STATUS_FIELDS.CS1 == ON)
+	if (status_reg.GENERAL_STATUS_FIELDS.TOUCH == ON && reg.SENSOR_INPUT_STATUS_FIELDS.CS1 == ON)
 	{
 		clearInterrupt();
 		return true;
@@ -277,8 +278,11 @@ bool CAP1293::isMiddleTouched()
 	SENSOR_INPUT_STATUS_REG reg;
 	reg.SENSOR_INPUT_STATUS_COMBINED = readRegister(SENSOR_INPUT_STATUS);
 
+	GENERAL_STATUS_REG status_reg;
+	status_reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
+
 	// Touch detected
-	if (reg.SENSOR_INPUT_STATUS_FIELDS.CS2 == ON)
+	if (status_reg.GENERAL_STATUS_FIELDS.TOUCH == ON && reg.SENSOR_INPUT_STATUS_FIELDS.CS2 == ON)
 	{
 		clearInterrupt();
 		return true;
@@ -296,8 +300,10 @@ bool CAP1293::isRightTouched()
 	SENSOR_INPUT_STATUS_REG reg;
 	reg.SENSOR_INPUT_STATUS_COMBINED = readRegister(SENSOR_INPUT_STATUS);
 
+	GENERAL_STATUS_REG status_reg;
+	status_reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
 	// Touch detected
-	if (reg.SENSOR_INPUT_STATUS_FIELDS.CS3 == ON)
+	if (status_reg.GENERAL_STATUS_FIELDS.TOUCH == ON && reg.SENSOR_INPUT_STATUS_FIELDS.CS3 == ON)
 	{
 		clearInterrupt();
 		return true;
@@ -312,11 +318,11 @@ bool CAP1293::isRightTouched()
 */
 bool CAP1293::isTouched()
 {
-	GENERAL_STATUS_REG reg;
-	reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
+	GENERAL_STATUS_REG status_reg;
+	status_reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
 
 	// Touch detected
-	if (reg.GENERAL_STATUS_FIELDS.TOUCH == ON)
+	if (status_reg.GENERAL_STATUS_FIELDS.TOUCH == ON)
 	{
 		clearInterrupt();
 		return true;
@@ -627,6 +633,290 @@ bool CAP1293::isPowerButtonTouched()
 		return true;
 	}
 	return false;
+}
+
+uint8_t CAP1293::getTouchKeyStatus(bool keyStatus[], uint8_t num)
+{
+	GENERAL_STATUS_REG status_reg;
+	status_reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
+
+	uint8_t keyChanged = 0;
+	uint8_t key = 0;
+	uint8_t keyFilter = 0;
+
+	// Touch detected
+	if (status_reg.GENERAL_STATUS_FIELDS.TOUCH == ON)
+	{
+		key = readRegister(SENSOR_INPUT_STATUS);
+		clearInterrupt();
+
+		delay(45); // donnot delete
+
+		keyFilter = readRegister(SENSOR_INPUT_STATUS);
+		clearInterrupt();
+
+		if (key & 0x01) // left key 
+		{
+			keyChanged |= 0x01;
+			if (keyFilter & 0x01)
+			{
+				keyStatus[0] = true;
+			}
+			else
+			{
+				keyStatus[0] = false;
+			}
+		}
+
+		if (key & 0x02) // middle key 
+		{
+			keyChanged |= 0x02;
+			if (keyFilter & 0x02)
+			{
+				keyStatus[1] = true;
+			}
+			else
+			{
+				keyStatus[1] = false;
+			}
+		}
+
+		if (key & 0x04) // right key
+		{
+			keyChanged |= 0x04;
+			if (keyFilter & 0x04)
+			{
+				keyStatus[2] = true;
+			}
+			else
+			{
+				keyStatus[2] = false;
+			}
+		}
+	}
+
+	return keyChanged;
+}
+
+
+/* Enable MULTIPLE TOUCH
+    Checks if multi touch input detected.
+	See datasheet on Sensor Interrupt Status
+*/
+void CAP1293::setMultiTouchEnabled()
+{
+	// config
+	MTP_CONFIG_REG config;
+	config.MTP_CONFIG_COMBINED = readRegister(MULTIPLE_TOUCH_CONFIG);
+
+	config.MTP_CONFIG_FIELDS.MULT_BLK_EN = 0;
+	
+	writeRegister(MULTIPLE_TOUCH_CONFIG, config.MTP_CONFIG_COMBINED);
+}
+
+/* Disable MULTIPLE TOUCH
+    Checks if multi touch input detected.
+*/
+void CAP1293::setMultiTouchDisabled()
+{
+	MTP_CONFIG_REG config;
+	config.MTP_CONFIG_COMBINED = readRegister(MULTIPLE_TOUCH_CONFIG);
+
+	config.MTP_CONFIG_FIELDS.MULT_BLK_EN = 1;
+	
+	writeRegister(MULTIPLE_TOUCH_CONFIG, config.MTP_CONFIG_COMBINED);
+}
+
+/* Enable MTP
+*/
+void CAP1293::setMTPEnabled(bool left, bool middle, bool right)
+{
+	MTP_ENABLE_REG reg;
+	reg.MTP_ENABLE_COMBINED = readRegister(MULTIPLE_TOUCH_PATTERN_CONFIG);
+	reg.MTP_ENABLE_FIELDS.MTP_EN = 1;
+	reg.MTP_ENABLE_FIELDS.COMP_PTRN = 1;
+	reg.MTP_ENABLE_FIELDS.MTP_ALERT = 1;
+
+	writeRegister(MULTIPLE_TOUCH_PATTERN_CONFIG, reg.MTP_ENABLE_COMBINED);
+
+	MULTIPLE_TOUCH_PATTERN_REG mtp_reg;
+	mtp_reg.MULTIPLE_TOUCH_PATTERN_COMBINED = readRegister(MULTIPLE_TOUCH_PATTERN);
+	mtp_reg.MULTIPLE_TOUCH_PATTERN_FIELDS.CS1_PTRN = left?1:0;
+	mtp_reg.MULTIPLE_TOUCH_PATTERN_FIELDS.CS2_PTRN = middle?1:0;
+	mtp_reg.MULTIPLE_TOUCH_PATTERN_FIELDS.CS3_PTRN = right?1:0;
+
+	writeRegister(MULTIPLE_TOUCH_PATTERN, mtp_reg.MULTIPLE_TOUCH_PATTERN_COMBINED);
+}
+
+/* is MTP
+    Checks if multi touch input detected.
+	See datasheet on Sensor Interrupt Status
+*/
+bool CAP1293::isMTPStatus()
+{
+	GENERAL_STATUS_REG reg;
+	reg.GENERAL_STATUS_COMBINED = readRegister(GENERAL_STATUS);
+
+	if (reg.GENERAL_STATUS_FIELDS.MTP == ON)
+	{
+		clearInterrupt();
+		return true;
+	}
+	return false;
+}
+
+/* DISABLE RELEASE INTERRUPTS
+    Disable Interrupt on release
+*/
+void CAP1293::setReleaseInterruptDisabled()
+{
+	byte controlReg2 = readRegister(CONFIG_2);
+	controlReg2 = controlReg2 | 0b00000001;
+	writeRegister(CONFIG_2, controlReg2);
+}
+
+/* Enable RELEASE INTERRUPTS
+    Disable Interrupt on release
+*/
+void CAP1293::setReleaseInterruptEnabled()
+{
+	byte controlReg2 = readRegister(CONFIG_2);
+	controlReg2 = controlReg2 & 0b11111110;
+	writeRegister(CONFIG_2, controlReg2);
+}
+
+/* Get Release Interrupt Enable status
+*/
+bool CAP1293::isReleaseInterruptEnabled()
+{
+	byte controlReg2 = readRegister(CONFIG_2);
+	if(controlReg2 & 0b00000001 == 1)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+
+/* DISABLE Deep Sleep
+   This turns on all sensor out of Deep Sleep state.
+	See data sheet on main control register
+*/
+void CAP1293::setDeepSleepDisabled()
+{
+	MAIN_CONTROL_REG reg;
+	reg.MAIN_CONTROL_COMBINED = readRegister(MAIN_CONTROL);
+
+	reg.MAIN_CONTROL_FIELDS.DSLEEP = 0x0;
+
+	writeRegister(MAIN_CONTROL, reg.MAIN_CONTROL_COMBINED);
+}
+
+/* ENABLE Deep Sleep
+   This turns on all sensor entering Deep Sleep and disabled all touch input scanning.
+	See data sheet on main control register
+*/
+void CAP1293::setDeepSleepEnabled()
+{
+	MAIN_CONTROL_REG reg;
+	reg.MAIN_CONTROL_COMBINED = readRegister(MAIN_CONTROL);
+
+	reg.MAIN_CONTROL_FIELDS.DSLEEP = 0x1;
+
+	writeRegister(MAIN_CONTROL, reg.MAIN_CONTROL_COMBINED);
+}
+
+/* IS INTERRUPT ENABLED
+    Returns whether touch intterupt is enable or not
+	See data sheet on main control register
+*/
+bool CAP1293::isDeepSleepEnabled()
+{
+	MAIN_CONTROL_REG reg;
+	reg.MAIN_CONTROL_COMBINED = readRegister(MAIN_CONTROL);
+
+	if(reg.MAIN_CONTROL_FIELDS.DSLEEP = 0x1)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+/*  CLEAR STATUS REGISTERS
+    at sometime, the input status cannot clear After clearing INT bit.
+	See data sheet on 5.2.2 SENSOR INPUT STATUS.
+*/
+void CAP1293::clearStatus()
+{
+	setDeepSleepEnabled();
+	setDeepSleepDisabled();
+}
+
+/* Disabled Force Calibrate
+	See data sheet on CALIBRATION_ACTIVATE_AND_STATUS register
+*/
+void CAP1293::setForceCalibrateDisabled()
+{
+	CALIBRATION_ACTIVATE_AND_STATUS_REG reg;
+	reg.CALIBRATION_ACTIVATE_AND_STATUS_COMBINED = readRegister(CALIBRATION_ACTIVATE_AND_STATUS);
+
+	reg.CALIBRATION_ACTIVATE_AND_STATUS_FIELDS.CS1_CAL = 0x00;
+	reg.CALIBRATION_ACTIVATE_AND_STATUS_FIELDS.CS2_CAL = 0x00;
+	reg.CALIBRATION_ACTIVATE_AND_STATUS_FIELDS.CS3_CAL = 0x00;
+
+	writeRegister(CALIBRATION_ACTIVATE_AND_STATUS, reg.CALIBRATION_ACTIVATE_AND_STATUS_COMBINED);
+}
+
+/* Enable Force Calibrate
+   This forces the selected sensor inputs to be calibrated.
+	See data sheet on CALIBRATION_ACTIVATE_AND_STATUS register
+*/
+void CAP1293::setForceCalibrateEnabled()
+{
+	CALIBRATION_ACTIVATE_AND_STATUS_REG reg;
+	reg.CALIBRATION_ACTIVATE_AND_STATUS_COMBINED = readRegister(CALIBRATION_ACTIVATE_AND_STATUS);
+
+	reg.CALIBRATION_ACTIVATE_AND_STATUS_FIELDS.CS1_CAL = 0x01;
+	reg.CALIBRATION_ACTIVATE_AND_STATUS_FIELDS.CS2_CAL = 0x01;
+	reg.CALIBRATION_ACTIVATE_AND_STATUS_FIELDS.CS3_CAL = 0x01;
+
+	writeRegister(CALIBRATION_ACTIVATE_AND_STATUS, reg.CALIBRATION_ACTIVATE_AND_STATUS_COMBINED);
+}
+
+/* Disable REPEAT RATE
+   Disables the repeat rate of the sensor inputs.
+	See data sheet on REPEAT RATE ENABLE register
+*/
+void CAP1293::setRepeatRateDisabled()
+{
+	REPEAT_RATE_ENABLE_REG reg;
+	reg.REPEAT_RATE_ENABLE_COMBINED = readRegister(REPEAT_RATE_ENABLE);
+
+	reg.REPEAT_RATE_ENABLE_FIELDS.CS1_RPT_EN = 0x00;
+	reg.REPEAT_RATE_ENABLE_FIELDS.CS2_RPT_EN = 0x00;
+	reg.REPEAT_RATE_ENABLE_FIELDS.CS3_RPT_EN = 0x00;
+
+	writeRegister(REPEAT_RATE_ENABLE, reg.REPEAT_RATE_ENABLE_COMBINED);
+}
+
+/* Enable REPEAT RATE
+   Enable the repeat rate of the sensor inputs.
+	See data sheet on REPEAT RATE ENABLE register
+*/
+void CAP1293::setRepeatRateEnabled()
+{
+	REPEAT_RATE_ENABLE_REG reg;
+	reg.REPEAT_RATE_ENABLE_COMBINED = readRegister(REPEAT_RATE_ENABLE);
+
+	reg.REPEAT_RATE_ENABLE_FIELDS.CS1_RPT_EN = 0x01;
+	reg.REPEAT_RATE_ENABLE_FIELDS.CS2_RPT_EN = 0x01;
+	reg.REPEAT_RATE_ENABLE_FIELDS.CS3_RPT_EN = 0x01;
+
+	writeRegister(REPEAT_RATE_ENABLE, reg.REPEAT_RATE_ENABLE_COMBINED);
 }
 
 /* READ A SINGLE REGISTER

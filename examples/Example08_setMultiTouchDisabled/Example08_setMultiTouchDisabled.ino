@@ -1,7 +1,7 @@
 /**
-   @file Example06_DisableInterrupt.ino
-   @author taylor.lee (taylor.lee@rakwireless.com)
-   @brief Disabled interrupt example for CAP1293 touch sensor IC
+   @file Example08_setMultiTouchDisabled.ino
+   @author Bernd Giesecke (bernd.giesecke@rakwireless.com)
+   @brief Set multiple touch disabled example for CAP1293 touch sensor IC
    @version 0.1
    @date 2021-02-18
 
@@ -9,7 +9,7 @@
 
 */
 #include <Wire.h>
-#include "CAP1293.h"
+#include "CAP1293.h" // Click here to get the library: http://librarymanager/All#SparkFun_CAP1293
 
 CAP1293 sensor; // Initialize sensor
 
@@ -24,7 +24,7 @@ void interruptHandle()
 
 void setup()
 {
-  Wire.begin();      // Join I2C bus
+  Wire.begin();     // Join I2C bus
   Serial.begin(115200); // Start serial for output
   time_t timeout = millis();
   while (!Serial)
@@ -51,27 +51,14 @@ void setup()
     Serial.println("Connected!");
   }
 
-  // set interrupt pin
-  pinMode(gInterruptPin, INPUT);
-  // set interrupt handle function
+  pinMode(gInterruptPin, INPUT_PULLUP);
   attachInterrupt(gInterruptPin, interruptHandle, FALLING);
 
   /*
-     Interrupt is enabled at begin() function,
-     if you want disable it, please call setInterruptDisabled()
-       When interrupt disabled is set, MCU cannot detect touch and release event.
+     Multiple touch is enabled at begin() function,
+     if you want disable it, please call setMultiTouchDisabled()
   */
-  sensor.setInterruptDisabled();
-
-  Serial.print("Interrupt: ");
-  if (sensor.isInterruptEnabled() == true)
-  {
-    Serial.println("ENABLED");
-  }
-  else
-  {
-    Serial.println("DISABLED");
-  }
+  sensor.setMultiTouchDisabled();
 }
 
 void loop()
