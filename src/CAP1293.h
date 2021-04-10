@@ -214,7 +214,7 @@ typedef union
 } MULTIPLE_TOUCH_PATTERN_REG;
 
 ////////////////////////////////
-// CAP1293 Class Declearation //
+// CAP1293 Class Declaration //
 ////////////////////////////////
 class CAP1293
 {
@@ -234,7 +234,7 @@ public:
 	bool isTouched();
 
 	// get which key is pressed or released(if enabled release interrupt)
-	uint8_t getTouchKeyStatus(bool keyStatus[], uint8_t num=3);
+	uint8_t getTouchKeyStatus(bool keyStatus[], uint8_t num = 3);
 
 	// Check if a swipe has occured
 	bool isRightSwipePulled();
@@ -270,7 +270,7 @@ public:
 	bool isPowerButtonEnabled();
 	bool isPowerButtonTouched();
 
-   // Configures if sensor can detect more than one key input
+	// Configures if sensor can detect more than one key input
 	void setMultiTouchEnabled();
 	void setMultiTouchDisabled();
 
@@ -283,10 +283,10 @@ public:
 	void setRepeatRateDisabled();
 
 	// MTP
-	void setMTPEnabled(bool left=true, bool middle=true, bool right=true);
+	void setMTPEnabled(bool left = true, bool middle = true, bool right = true);
 	bool isMTPStatus();
 
-    // Configures if interrupt triggers on Release touch key
+	// Configures if interrupt triggers on Release touch key
 	void setReleaseInterruptDisabled();
 	void setReleaseInterruptEnabled();
 	bool isReleaseInterruptEnabled();

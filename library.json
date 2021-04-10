@@ -1,6 +1,6 @@
 {
 	"name": "Arduino CAP1293 Touch Pad library",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"keywords": [
 		"touch",
 		"cap1293",
