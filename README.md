@@ -9,14 +9,14 @@
 
 <center><img src="./assets/touchpad.png" alt="RAKstar" width=50%></center>
 
-[*RAKwireless RAK14002 Capacitive Touch Button*](https://docs.rakwireless.com/Product-Categories/WisBlock/#wisblock-io)
+[*RAKwireless RAK14002 Capacitive Touch Button*](https://store.rakwireless.com/products/3-channel-touch-pad-module-rak14002)
 
 Arduino library for the I2C based capacitive touch pad module with 3 unique touch inputs. 
 
 # Documentation
 
 * **[Product Repository](https://github.com/RAKWireless/RAK14002-CAP1293-Library)** - Product repository for the RAKWireless RAK14002 Capacitive Touch Pad.
-* **[Documentation](https://docs.rakwireless.com/Product-Categories/WisBlock/#wisblock-io)** - Documentation and Quick Start Guide for the RAK14002 Capacitive Touch Pad.
+* **[Documentation](https://docs.rakwireless.com/Product-Categories/WisBlock/RAK14002/Overview/)** - Documentation and Quick Start Guide for the RAK14002 Capacitive Touch Pad.
 
 # Installation
 
