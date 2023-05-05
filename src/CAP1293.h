@@ -213,6 +213,22 @@ typedef union
 	uint8_t MULTIPLE_TOUCH_PATTERN_COMBINED;
 } MULTIPLE_TOUCH_PATTERN_REG;
 
+
+// === Begin by Andri ===
+// Sensor Monitor Enable Register 0x27
+typedef union
+{
+    struct
+    {
+        uint8_t CS1_EN : 1;
+        uint8_t CS2_EN : 1;
+        uint8_t CS3_EN : 1;
+        uint8_t EMPTY_1 : 5;
+    } SENSOR_INPUT_ENABLE_FIELDS;
+    uint8_t SENSOR_INPUT_ENABLE_COMBINED;
+} SENSOR_INPUT_ENABLE_REG;
+// === End by Andri ===
+
 ////////////////////////////////
 // CAP1293 Class Declaration //
 ////////////////////////////////
@@ -290,6 +306,21 @@ public:
 	void setReleaseInterruptDisabled();
 	void setReleaseInterruptEnabled();
 	bool isReleaseInterruptEnabled();
+
+    // === Begin by Andri ===
+    /**
+     * Set sensor input monitoring enablement
+     * @param inputNo - Sensor input number, starts from 0
+     * @param enabled - true means enabled
+     */
+    void setSensorInputEnabled(uint8_t inputNo, bool enabled);
+    /**
+     * Set sensor input monitoring enablement in one go
+     * @param inputEnables - Sensor input states
+     * @param num - Should be 3
+     */
+    void setSensorInputsEnabled(const bool inputEnables[], uint8_t num = 3);
+    // === End by Andri ===
 
 private:
 	TwoWire *_i2cPort = NULL; //The generic connection to user's chosen I2C hardware

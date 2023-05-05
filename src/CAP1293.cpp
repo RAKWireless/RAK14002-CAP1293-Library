@@ -980,3 +980,31 @@ void CAP1293::writeRegisters(CAP1293_Register reg, byte *buffer, byte len)
 		_i2cPort->write(buffer[i]);
 	_i2cPort->endTransmission(); // Stop transmitting
 }
+
+// === Begin by Andri ===
+void CAP1293::setSensorInputEnabled(uint8_t inputNo, bool enabled) {
+    SENSOR_INPUT_ENABLE_REG reg;
+    reg.SENSOR_INPUT_ENABLE_COMBINED = readRegister(SENSOR_INPUT_ENABLE);
+    if (inputNo == 0) {
+        reg.SENSOR_INPUT_ENABLE_FIELDS.CS1_EN = enabled? 0x01: 0x00;
+    }
+    else if (inputNo == 1) {
+        reg.SENSOR_INPUT_ENABLE_FIELDS.CS2_EN = enabled? 0x01: 0x00;
+    }
+    else if (inputNo == 2) {
+        reg.SENSOR_INPUT_ENABLE_FIELDS.CS3_EN = enabled? 0x01: 0x00;
+    }
+    writeRegister(SENSOR_INPUT_ENABLE, reg.SENSOR_INPUT_ENABLE_COMBINED);
+}
+
+void CAP1293::setSensorInputsEnabled(const bool inputEnables[], uint8_t num) {
+    SENSOR_INPUT_ENABLE_REG reg;
+    reg.SENSOR_INPUT_ENABLE_COMBINED = readRegister(SENSOR_INPUT_ENABLE);
+    if (num == 3) {
+        reg.SENSOR_INPUT_ENABLE_FIELDS.CS1_EN = inputEnables[0]? 0x01: 0x00;
+        reg.SENSOR_INPUT_ENABLE_FIELDS.CS2_EN = inputEnables[1]? 0x01: 0x00;
+        reg.SENSOR_INPUT_ENABLE_FIELDS.CS3_EN = inputEnables[2]? 0x01: 0x00;
+    }
+    writeRegister(SENSOR_INPUT_ENABLE, reg.SENSOR_INPUT_ENABLE_COMBINED);
+}
+// === End by Andri ===
