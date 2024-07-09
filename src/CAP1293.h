@@ -213,6 +213,28 @@ typedef union
 	uint8_t MULTIPLE_TOUCH_PATTERN_COMBINED;
 } MULTIPLE_TOUCH_PATTERN_REG;
 
+// Structures to represent register fields
+typedef union {
+    uint8_t SIGNAL_GUARD_ENABLE_COMBINED;
+    struct {
+        uint8_t CS1_SG_EN : 1;
+        uint8_t reserved : 1;
+        uint8_t CS3_SG_EN : 1;
+        uint8_t reserved2 : 5;
+    } SIGNAL_GUARD_ENABLE_FIELDS;
+} SIGNAL_GUARD_ENABLE_REG;
+
+// Register address for calibration sensitivity configuration
+typedef union {
+    uint8_t CALIBRATION_SENSITIVITY_COMBINED;
+    struct {
+        uint8_t CALSEN1 : 2;
+        uint8_t CALSEN2 : 2;
+        uint8_t CALSEN3 : 2;
+        uint8_t reserved : 2;
+    } CALIBRATION_SENSITIVITY_FIELDS;
+} CALIBRATION_SENSITIVITY_REG;
+
 ////////////////////////////////
 // CAP1293 Class Declaration //
 ////////////////////////////////
@@ -290,6 +312,10 @@ public:
 	void setReleaseInterruptDisabled();
 	void setReleaseInterruptEnabled();
 	bool isReleaseInterruptEnabled();
+
+	void enableSignalGuard(uint8_t sensorInput, bool enable);
+	int8_t readRawData(uint8_t sensorInput);
+	void setCalibrationSensitivity(uint8_t sensorInput, uint8_t gain);
 
 private:
 	TwoWire *_i2cPort = NULL; //The generic connection to user's chosen I2C hardware

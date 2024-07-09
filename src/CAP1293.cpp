@@ -980,3 +980,54 @@ void CAP1293::writeRegisters(CAP1293_Register reg, byte *buffer, byte len)
 		_i2cPort->write(buffer[i]);
 	_i2cPort->endTransmission(); // Stop transmitting
 }
+
+void CAP1293::enableSignalGuard(uint8_t sensorInput, bool enable) {
+    SIGNAL_GUARD_ENABLE_REG reg;
+    reg.SIGNAL_GUARD_ENABLE_COMBINED = readRegister(SIGNAL_GUARD_ENABLE_REGISTER);
+
+    if (sensorInput == 1) {
+        reg.SIGNAL_GUARD_ENABLE_FIELDS.CS1_SG_EN = enable ? 1 : 0;
+    } else if (sensorInput == 3) {
+        reg.SIGNAL_GUARD_ENABLE_FIELDS.CS3_SG_EN = enable ? 1 : 0;
+    }
+
+    writeRegister(SIGNAL_GUARD_ENABLE_REGISTER, reg.SIGNAL_GUARD_ENABLE_COMBINED);
+}
+
+int8_t CAP1293::readRawData(uint8_t sensorInput) {
+
+    switch (sensorInput) {
+        case 1:
+            return readRegister(CS1_RAW_DATA_REGISTER);
+            break;
+        case 2:
+            return readRegister(CS2_RAW_DATA_REGISTER);
+            break;
+        case 3:
+            return readRegister(CS3_RAW_DATA_REGISTER);
+            break;
+        default:
+            return 0; // Invalid sensor input
+    }
+}
+
+void CAP1293::setCalibrationSensitivity(uint8_t sensorInput, uint8_t gain) {
+    CALIBRATION_SENSITIVITY_REG reg;
+    reg.CALIBRATION_SENSITIVITY_COMBINED = readRegister(CALIBRATION_SENSITIVITY_REGISTER);
+
+    switch (sensorInput) {
+        case 1:
+            reg.CALIBRATION_SENSITIVITY_FIELDS.CALSEN1 = gain;
+            break;
+        case 2:
+            reg.CALIBRATION_SENSITIVITY_FIELDS.CALSEN2 = gain;
+            break;
+        case 3:
+            reg.CALIBRATION_SENSITIVITY_FIELDS.CALSEN3 = gain;
+            break;
+        default:
+            return; // Invalid sensor input
+    }
+
+    writeRegister(CALIBRATION_SENSITIVITY_REGISTER, reg.CALIBRATION_SENSITIVITY_COMBINED);
+}
